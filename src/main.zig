@@ -10,7 +10,7 @@ pub const allocator = std.mem.Allocator{
 };
 
 pub fn args(len: usize) ![]u8 {
-    var input = try allocator.alloc(u8, len);
+    const input = try allocator.alloc(u8, len);
     read_args(@as(*u8, @ptrCast(input)));
     return input;
 }
