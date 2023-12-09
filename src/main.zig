@@ -9,19 +9,21 @@ pub const allocator = std.mem.Allocator{
     .vtable = &WasmAllocator.vtable,
 };
 
+// Reads input arguments from an external, WASM import into a dynamic slice.
 pub fn args(len: usize) ![]u8 {
     var input = try allocator.alloc(u8, len);
-    read_args(@ptrCast(*u8, input));
+    read_args(@as(*u8, @ptrCast(input)));
     return input;
 }
 
+// Outputs data as bytes via a write_result, external WASM import.
 pub fn output(data: []u8) void {
-    write_result(@ptrCast(*u8, data.ptr), data.len);
+    write_result(@as(*u8, @ptrCast(data)), data.len);
 }
 
 export fn user_entrypoint(len: usize) i32 {
     var input = args(len) catch return 1;
-    var out = input[0..1];
+    const out = input[0..1];
     output(out);
     return 0;
 }
