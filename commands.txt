@@ -1,6 +1,12 @@
 zig build-lib ./src/main.zig -target wasm32-freestanding -dynamic --export=user_entrypoint -OReleaseSmall --export=mark_unused
 
+<<<<<<< Updated upstream
 zig build-lib ./src/main.zig -target wasm32-freestanding -dynamic --export=user_entrypoint -OReleaseSmall
 
 # foundary command
 ./cast call --rpc-url 'https://stylus-testnet.arbitrum.io/rpc' 0xFF90a2c0ADA8458D26A54b5e33420824a036e87F '0x123456'
+=======
+zig build-lib ./src/main.zig -target wasm32-freestanding -dynamic --export=user_entrypoint -OReleaseSmall 
+
+cargo stylus check --wasm-file-path main.wasm
+>>>>>>> Stashed changes
