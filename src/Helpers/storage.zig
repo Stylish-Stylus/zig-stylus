@@ -1,5 +1,16 @@
 const std = @import("std");
 const bebi = @import("bebi.zig");
+const Hostio = @import("Hostio.zig");
+
+pub fn storage_load(storage: *void, key: *u8, dest: *u8) void {
+    _ = storage;
+    Hostio.storage_load_bytes32(key, dest);
+}
+
+pub fn storage_store(storage: *void, key: *u8, value: *u8) void {
+    _ = storage;
+    Hostio.storage_store_bytes32(key, value);
+}
 
 pub fn array_slot_offset(base: bebi.bebi32, val_size: usize, index: u64, slot_out: bebi.bebi32, offset_out: ?*usize) i32 {
     var slots: u64 = 0;
