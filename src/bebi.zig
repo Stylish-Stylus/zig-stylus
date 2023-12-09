@@ -1,161 +1,98 @@
 const std = @import("std");
 
-const bebi = []u8{};
+const bebi = struct {
+    buf: [32]u8,
+};
 
-pub fn bebi_set_u8(dst: []u8, offset: usize, val: u8) void {
-    dst[offset] = val;
+// External inline functions
+extern fn bebi_add(lhs: *bebi, lhs_size: usize, rhs: *bebi, rhs_size: usize) i32;
+extern fn bebi_sub(lhs: *bebi, lhs_size: usize, rhs: *bebi, rhs_size: usize) i32;
+extern fn bebi_cmp(lhs: *const bebi, lhs_size: usize, rhs: *const bebi, rhs_size: usize) i32;
+
+extern fn bebi_set_u8(dst: *bebi, offset: usize, val: u8) void;
+extern fn bebi_is_zero(bebi: *const bebi, size: usize) bool;
+extern fn bebi_get_u8(src: *const bebi, offset: usize) u8;
+extern fn bebi_set_u16(dst: *bebi, offset: usize, val: u16) void;
+extern fn bebi_get_u16(src: *const bebi, offset: usize) u16;
+extern fn bebi_set_u32(dst: *bebi, offset: usize, val: u32) void;
+extern fn bebi_get_u32(src: *const bebi, offset: usize) u32;
+extern fn bebi_set_u64(dst: *bebi, offset: usize, val: u64) void;
+extern fn bebi_get_u64(src: *const bebi, offset: usize) u64;
+
+pub fn bebi32_add(lhs: *bebi, rhs: *bebi) i32 {
+    return bebi_add(lhs, 32, rhs, 32);
 }
 
-pub fn bebi_set_u16(dst: []u8, offset: usize, val: u16) void {
-    dst[offset + 1] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset] = @as(u8, @intCast(val & 0xff));
+pub fn bebi32_sub(lhs: *bebi, rhs: *bebi) i32 {
+    return bebi_sub(lhs, 32, rhs, 32);
 }
 
-pub fn bebi_set_u32(dst: []u8, offset: usize, val: u32) void {
-    dst[offset + 3] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 2] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 1] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset] = @as(u8, @intCast(val & 0xff));
+pub fn bebi32_add_u64(lhs: *bebi, rhs: u64) i32 {
+    var rhs_bebi: [8]u8 = undefined;
+    bebi_set_u64(&rhs_bebi, 0, rhs);
+    return bebi_add(lhs, 32, &rhs_bebi, 8);
 }
 
-pub fn bebi_set_u64(dst: []u8, offset: usize, val: u64) void {
-    dst[offset + 7] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 6] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 5] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 4] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 3] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 2] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset + 1] = @as(u8, @intCast(val & 0xff));
-    val >>= 8;
-    dst[offset] = @as(u8, @intCast(val & 0xff));
+pub fn bebi32_set_u8(dst: *bebi, val: u8) void {
+    std.memset(dst, 0, 32 - 1);
+    bebi_set_u8(dst, 32 - 1, val);
 }
 
-pub fn bebi_get_u8(src: []u8, offset: usize) u8 {
-    return src[offset];
+pub fn bebi32_set_u16(dst: *bebi, val: u16) void {
+    std.memset(dst, 0, 32 - 2);
+    bebi_set_u16(dst, 32 - 2, val);
 }
 
-// pub fn bebi_get_u16(src: []u8, offset: usize) u16 {
-//     return (u16)src[offset] or ((u16)src[offset + 1] << 8);
-// }
-
-// pub fn bebi_get_u32(src: []u8, offset: usize) u32 {
-//     return (u32)src[offset] | ((u32)src[offset + 1] << 8) | ((u32)src[offset + 2] << 16) | ((u32)src[offset + 3] << 24);
-// }
-
-// pub fn bebi_get_u64(src: []u8, offset: usize) u64 {
-//     return (u64)src[offset] | ((u64)src[offset + 1] << 8) | ((u64)src[offset + 2] << 16) | ((u64)src[offset + 3] << 24) |
-//            ((u64)src[offset + 4] << 32) | ((u64)src[offset + 5] << 40) | ((u64)src[offset + 6] << 48) | ((u64)src[offset + 7] << 56);
-// }
-
-pub fn bebi_add(lhs: []u8, lhs_size: usize, rhs: []u8, rhs_size: usize) i32 {
-    if (rhs_size > lhs_size) {
-        return -1;
-    }
-    var left: usize = lhs_size;
-    var right: usize = rhs_size;
-    var carry: u8 = 0;
-    while (left > 0 and right > 0) {
-        left -= 1;
-        right -= 1;
-        const res: u8 = lhs[left] + rhs[right] + carry;
-
-        if (res < lhs[left]) {
-            carry = 1;
-        } else {
-            carry = 0;
-        }
-        lhs[left] = res;
-    }
-    while (left > 0 and carry != 0) {
-        left -= 1;
-        const res: u8 = lhs[left] + carry;
-        if (res < lhs[left]) {
-            carry = 1;
-        } else {
-            carry = 0;
-        }
-        lhs[left] = res;
-    }
-    return carry;
+pub fn bebi32_set_u32(dst: *bebi, val: u32) void {
+    std.memset(dst, 0, 32 - 4);
+    bebi_set_u32(dst, 32 - 4, val);
 }
 
-pub fn bebi_sub(lhs: []u8, lhs_size: usize, rhs: []u8, rhs_size: usize) i32 {
-    if (rhs_size > lhs_size) {
-        return -1;
-    }
-    var left: usize = lhs_size;
-    var right: usize = rhs_size;
-    var carry: u8 = 0;
-    while (left > 0 and right > 0) {
-        left -= 1;
-        right -= 1;
-        const res: u8 = lhs[left] - rhs[right] - carry;
-        if (res < lhs[left]) {
-            carry = 1;
-        } else {
-            carry = 0;
-        }
-        lhs[left] = res;
-    }
-    while (left > 0 and carry != 0) {
-        left -= 1;
-        const res: u8 = lhs[left] - carry;
-        if (res < lhs[left]) {
-            carry = 1;
-        } else {
-            carry = 0;
-        }
-        lhs[left] = res;
-    }
-    return carry;
+pub fn bebi32_set_u64(dst: *bebi, val: u64) void {
+    std.memset(dst, 0, 32 - 8);
+    bebi_set_u64(dst, 32 - 8, val);
 }
 
-pub fn bebi_cmp(lhs: []u8, lhs_size: usize, rhs: []u8, rhs_size: usize) i32 {
-    var left: usize = 0;
-    var right: usize = 0;
-    while (lhs_size - left > rhs_size) {
-        if (lhs[left] != 0) {
-            return 1;
-        }
-        left += 1;
-    }
-    while (rhs_size - right > lhs_size) {
-        if (rhs[right] != 0) {
-            return -1;
-        }
-        right += 1;
-    }
-    while (left < lhs_size) {
-        if (lhs[left] > rhs[right]) {
-            return 1;
-        }
-        if (lhs[left] < rhs[right]) {
-            return -1;
-        }
-        right += 1;
-        left += 1;
-    }
-    return 0;
+pub fn bebi32_is_u8(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32 - 8);
 }
 
-pub fn bebi_is_zero(input: []u8, size: usize) bool {
-    var idx: usize = 0;
+pub fn bebi32_is_u16(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32 - 2);
+}
 
-    while (idx < size) {
-        if (input[idx] != 0) {
-            return false;
-        }
-        idx += 1;
-    }
-    return true;
+pub fn bebi32_is_u32(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32 - 4);
+}
+
+pub fn bebi32_is_u64(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32 - 8);
+}
+
+pub fn bebi32_is_u160(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32 - 20);
+}
+
+pub fn bebi32_get_u16(dst: *bebi) u16 {
+    return bebi_get_u16(dst, 32 - 2);
+}
+
+pub fn bebi32_get_u32(dst: *bebi) u32 {
+    return bebi_get_u32(dst, 32 - 4);
+}
+
+pub fn bebi32_get_u64(dst: *bebi) u64 {
+    return bebi_get_u64(dst, 32 - 8);
+}
+
+pub fn bebi32_is_zero(dst: *bebi) bool {
+    return bebi_is_zero(dst, 32);
+}
+
+pub fn bebi32_cmp(lhs: *bebi, rhs: *bebi) i32 {
+    return bebi_cmp(lhs, 32, rhs, 32);
+}
+
+pub fn main() void {
+    // You can add your testing code here.
 }
