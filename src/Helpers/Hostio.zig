@@ -2,7 +2,9 @@ pub extern "vm_hooks" fn account_balance(address: *u8, dest: *u8) void;
 
 pub extern "vm_hooks" fn account_codehash(address: *u8, dest: *u8) void;
 
-pub extern "vm_hooks" fn storage_store_bytes32(key: *u8, value: *u8) void;
+pub extern "vm_hooks" fn storage_store_bytes32(key: *const u8, value: *const u8) void;
+
+pub extern "vm_hooks" fn storage_load_bytes32(key: *const u8, dest: *u8) void;
 
 pub extern "vm_hooks" fn block_basefee(basefee: *u8) void;
 
