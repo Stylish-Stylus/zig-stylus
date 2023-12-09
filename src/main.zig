@@ -21,7 +21,7 @@ pub fn output(data: []u8) void {
 
 export fn user_entrypoint(len: usize) i32 {
     var input = args(len) catch return 1;
-    const out = input[0..1];
+    const out = input[0..len];
     output(out);
     return 0;
 }
