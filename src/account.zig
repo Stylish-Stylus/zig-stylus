@@ -1,13 +1,13 @@
 const std = @import("std");
 const WasmAllocator = @import("WasmAllocator.zig");
-const Hostio = @import("Hostio.zig");
+const Hostio = @import("./Helpers/Hostio.zig");
 
 pub const allocator = std.mem.Allocator{
     .ptr = undefined,
     .vtable = &WasmAllocator.vtable,
 };
 pub fn result() ![]u8 {
-    const result2 = try allocator.alloc(u8, 2);
+    const result2 = try allocator.alloc(u8, 10);
     return result2;
 }
 
@@ -21,21 +21,23 @@ pub fn output(data: []u8) void {
     Hostio.write_result(@as(*u8, @ptrCast(data)), data.len);
 }
 
-pub extern "vm_hooks" fn account_balance(address: *const u8, dest: *u8) void;
+// pub extern "vm_hooks" fn account_balance(address: *const u8, dest: *u8) void;
 
 export fn user_entrypoint(len: usize) i32 {
     const input = args(len) catch return 1;
 
-    const address = input[0];
+    var address: []u8 = input[0..len];
 
-    var dest: u8 = 0;
+    var dest: [32]u8 = undefined;
 
-    account_balance(&address, &dest);
-    var result1 = result() catch return 1;
+    Hostio.account_balance(&address[0], &dest[0]);
 
-    result1[0] = dest;
+    // var result1 = result() catch return 1;
 
-    const out = result1[0..result1.len];
-    output(out);
+    // result1[0] = dest;
+
+    // const out = result1[0..result1.len];
+    // _ = out;
+    output(&dest);
     return 0;
 }
