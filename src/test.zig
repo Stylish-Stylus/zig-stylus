@@ -25,17 +25,19 @@ pub fn output(data: []u8) void {
 
 export fn user_entrypoint(len: usize) i32 {
     const input = args(len) catch return 1;
-    _ = input;
 
-    var a = "hello123";
-    var v = "ola";
+    const key = "counter";
+    const value: []u8 = input[0..len];
+    const comp = "0x03";
+    var current_value: [32]u8 = undefined;
 
-    var value: [v.len]u8 = undefined;
+    if (value[0] == comp[0]) {
+        Hostio.storage_load_bytes32(&key[0], &current_value[0]);
+        output(&current_value);
+    } else {
+        Hostio.storage_store_bytes32(&key[0], &value[0]);
+        output(input);
+    }
 
-    Hostio.storage_store_bytes32(&a[0], &v[0]);
-
-    Hostio.storage_load_bytes32(&a[0], &value[0]);
-
-    output(&value);
     return 0;
 }
