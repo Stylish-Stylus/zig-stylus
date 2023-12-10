@@ -28,7 +28,7 @@ pub extern "vm_hooks" fn create2(code: *u8, code_len: usize, endowment: *u8, sal
 
 pub extern "vm_hooks" fn delegate_call_contract(contract: *u8, calldata: *u8, calldata_len: usize, gas: *u64, return_data_len: *usize) u8;
 
-pub extern "vm_hooks" fn emit_log(data: *u8, len: *u8) void;
+pub extern "vm_hooks" fn emit_log(data: *u8, len: usize, topics: usize) void;
 
 pub extern "vm_hooks" fn evm_gas_left() u64;
 

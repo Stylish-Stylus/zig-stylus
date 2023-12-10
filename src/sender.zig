@@ -19,13 +19,13 @@ pub fn output(data: []u8) void {
 
 export fn user_entrypoint(len: usize) i32 {
     const input = args(len) catch return 1;
+    _ = input;
 
-    var address: []u8 = input[0..len];
+    var data: [32]u8 = undefined;
+    var length: [32]u8 = undefined;
 
-    var dest: [32]u8 = undefined;
+    Hostio.emit_log(&data[0], &length[0]);
 
-    Hostio.account_balance(&address[0], &dest[0]);
-
-    output(&dest);
+    output(&data);
     return 0;
 }

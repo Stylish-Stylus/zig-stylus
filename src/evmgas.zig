@@ -13,19 +13,16 @@ pub fn args(len: usize) ![]u8 {
     return input;
 }
 
-pub fn output(data: []u8) void {
-    Hostio.write_result(@as(*u8, @ptrCast(data)), data.len);
-}
+pub extern "vm_hooks" fn write_result(data: *u64, len: usize) void;
 
 export fn user_entrypoint(len: usize) i32 {
     const input = args(len) catch return 1;
+    _ = input;
 
-    var address: []u8 = input[0..len];
+    var gas: [4]u64 = undefined;
+    gas[0] = Hostio.evm_gas_left();
 
-    var dest: [32]u8 = undefined;
+    write_result(&gas[0], gas.len);
 
-    Hostio.account_balance(&address[0], &dest[0]);
-
-    output(&dest);
     return 0;
 }
