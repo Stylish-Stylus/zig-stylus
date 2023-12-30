@@ -1,6 +1,6 @@
 const std = @import("std");
 const WasmAllocator = @import("WasmAllocator.zig");
-const Hostio = @import("./Helpers/Hostio.zig");
+const Hostio = @import("./Includes/Hostio.zig");
 
 pub const allocator = std.mem.Allocator{
     .ptr = undefined,
