@@ -5,3 +5,4 @@ zig build-lib ./src/main.zig -target wasm32-freestanding -dynamic --export=user_
 cargo stylus check --wasm-file-path main.wasm 
 
 cargo stylus deploy --wasm-file-path chainid.wasm --private-key <private-key>
+
